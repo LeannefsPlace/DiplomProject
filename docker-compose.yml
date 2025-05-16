@@ -1,0 +1,183 @@
+version: '3.8'
+
+name: taskmanager_service
+
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: task_manager_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    command: postgres -c max_connections=100 -c shared_buffers=256MB -c effective_cache_size=768MB
+    networks:
+      - taskmanager_network
+
+  mongodb:
+    image: mongo:6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - taskmanager_network
+
+  kafka:
+    image: bitnami/kafka:3.4
+    environment:
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CFG_NUM_PARTITIONS: 3
+      KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - taskmanager_network
+
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    healthcheck:
+      test: ["CMD", "zkServer.sh", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - taskmanager_network
+
+  project-service:
+    build: ./project_service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/task_manager_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8088:8088"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - taskmanager_network
+
+  user-service:
+    build: ./user_service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/task_manager_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8085:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - taskmanager_network
+
+  auth-service:
+    build: ./auth_service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/task_manager_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8090:8090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - taskmanager_network
+
+  db-handler:
+    build: ./db_handler_service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/task_manager_db
+      SPRING_DATA_MONGODB_URI: mongodb://root:password@mongodb:27017/task_manager_db?authSource=admin
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      BACKUP_STORAGE_PATH: /var/backups
+      SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET: earliest
+      SPRING_KAFKA_CONSUMER_GROUP_ID: db-backup-group
+    volumes:
+      - backups:/var/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - taskmanager_network
+
+  project-task-service:
+    build: ./project_task_service
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://root:password@mongodb:27017/task_manager_db?authSource=admin
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8099:8099"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - taskmanager_network
+
+  gateway-service:
+    build: ./gateway_service
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - taskmanager_network
+
+networks:
+  taskmanager_network:
+    driver: bridge
+
+volumes:
+  pg_data:
+  mongo_data:
+  backups:

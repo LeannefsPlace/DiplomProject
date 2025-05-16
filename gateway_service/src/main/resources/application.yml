@@ -1,0 +1,48 @@
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      acks: all
+      properties:
+        retry.backoff.ms: 1000
+        max.in.flight.requests.per.connection: 1
+    consumer:
+      group-id: gateway-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.ivan.gateway_service.kafka
+        spring.json.use.type.headers: false
+    listener:
+      missing-topics-fatal: false
+    admin:
+      auto-create: true
+jwt:
+  secret: secret-presecret-oleg-password-can-change-da-world
+  expiration: 1000
+app:
+  kafka:
+    topics:
+      project-actions: project-actions
+      project-task-commands: project-task-commands
+      project-task-results: project-task-results
+      project-task-actions: project-task-actions
+      user-actions: user-actions
+      skill-actions: skill-actions
+      project-commands: project-commands
+      project-results: project-results
+      backup-commands: backup-commands
+      backup-results: backup-results
+      user-commands: user-commands
+      user-results: user-results
+      session-commands: session-commands
+      session-results: session-results
+      session-actions: session-actions
+      skill-commands: skill-commands
+      skill-results: skill-results
+server:
+  port: 8080

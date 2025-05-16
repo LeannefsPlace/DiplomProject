@@ -1,0 +1,61 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:postgres}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+  jpa:
+    hibernate.ddl-auto: validate
+  data:
+    mongodb:
+      host: ${MONGO_HOST:localhost}
+      port: ${MONGO_PORT:27017}
+      database: ${MONGO_DB:task_manager_db}
+      username: ${MONGO_USER:root}
+      password: ${MONGO_PASSWORD:password}
+      authentication-database: admin
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      acks: all
+      properties:
+        retry.backoff.ms: 1000
+        max.in.flight.requests.per.connection: 1
+    consumer:
+      group-id: db-backup-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.value.default.type: com.ivan.db_handler_service.kafka.BackupCommandEvent
+        spring.json.trusted.packages: com.ivan.db_handler_service.kafka
+        spring.json.use.type.headers: false
+        retry.backoff.ms: 1000
+        reconnect.backoff.ms: 1000
+        reconnect.backoff.max.ms: 5000
+        max.poll.interval.ms: 300000
+        session.timeout.ms: 60000
+        heartbeat.interval.ms: 20000
+    admin:
+      properties:
+        bootstrap.servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+      auto-create: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    locations: classpath:db/migration
+    user: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    connect-retries: 10
+    connect-retries-interval: 5
+
+
+backup:
+  storage:
+    path: ${BACKUP_STORAGE_PATH:/var/backups}
+    mongo:
+      uri: mongodb://${MONGO_USER:root}:${MONGO_PASSWORD:password}@${MONGO_HOST:mongodb}:${MONGO_PORT:27017}
