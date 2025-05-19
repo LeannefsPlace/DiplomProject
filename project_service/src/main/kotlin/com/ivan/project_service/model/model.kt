@@ -24,7 +24,7 @@ data class Project(
     @Column(columnDefinition = "TEXT")
     var description: String? = null,
 
-    @OneToMany(mappedBy = "project", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     val members: List<ProjectUser> = mutableListOf()
 ) {
     constructor() : this(

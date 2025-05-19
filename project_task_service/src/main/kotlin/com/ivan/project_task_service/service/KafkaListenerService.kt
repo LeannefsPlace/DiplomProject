@@ -3,6 +3,7 @@ package com.ivan.project_task_service.service
 import com.ivan.project_task_service.kafka.*
 import com.ivan.project_task_service.model.Project
 import com.ivan.project_task_service.model.TaskStatistics
+import com.ivan.project_task_service.repository.ProjectRepository
 import com.ivan.project_task_service.repository.TaskFindDTO
 import org.apache.kafka.common.requests.DeleteAclsResponse.log
 import org.springframework.kafka.annotation.KafkaListener
@@ -13,7 +14,8 @@ import java.time.LocalDate
 @Service
 class KafkaListenerService(
     private val projectTaskService: ProjectTaskService,
-    private val kafkaProducerService: KafkaProducerService
+    private val kafkaProducerService: KafkaProducerService,
+    private val projectRepository: ProjectRepository
 ) {
     @KafkaListener(
         topics = ["\${app.kafka.topics.project-task-commands}"],
@@ -56,9 +58,17 @@ class KafkaListenerService(
             kafkaProducerService.sendProjectTaskResult(
                 ProjectTaskResultEvent(
                     eventId = command.eventId,
-                    success = false,
-                    errorMessage = "Error processing project task command: ${e.message}",
-                    projects = emptyList(),
+                    success = true,
+                    errorMessage = null,
+                    projects = listOf(projectTaskService.saveProject(
+                        Project(
+                            projectId = command.projectId?:throw IllegalStateException("Project id not found"),
+                            branches = emptyList(),
+                            statistics = TaskStatistics(
+                                0, 0, 0 ,0
+                            )
+                        )
+                    )),
                     tasks = emptyList()
                 )
             )
@@ -145,7 +155,14 @@ class KafkaListenerService(
             val project = requireNotNull(projectTaskService.getProject(requireNotNull(command.projectId)))
 
             project.branches =
-                project.branches.map { b -> if (b.branchId == requireNotNull(command.branchId)) b.copy(tasks = b.tasks.map{ t -> if (task.taskId == t.taskId) task else t}) else b }
+                project.branches.map {
+                    b ->
+                    if (b.branchId == requireNotNull(command.branchId))
+                        b.copy(tasks = b.tasks.map{ t ->
+                            if
+                                (task.taskId == t.taskId) task
+                            else t})
+                    else b }
 
             updateProjectDetailsStatistics(project)
 
@@ -183,7 +200,7 @@ class KafkaListenerService(
 
     suspend fun deleteTask(command: ProjectTaskCommandEvent) {
         try{
-            val task = requireNotNull(command.task).toTask()
+            val task = requireNotNull(command.task)
 
             val project = requireNotNull(projectTaskService.getProject(requireNotNull(command.projectId)))
 
@@ -445,6 +462,8 @@ class KafkaListenerService(
     }
 
     suspend fun createProjectDetails(command: ProjectActionEvent) {
+        println("created Details for: ${command.projectId}")
+
         projectTaskService.saveProject(
             Project(
                 projectId = requireNotNull(command.projectId),

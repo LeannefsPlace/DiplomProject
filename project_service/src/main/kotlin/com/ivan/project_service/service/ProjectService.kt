@@ -54,7 +54,8 @@ class ProjectService(
                     kafkaProducerService.sendProjectAction(ProjectActionEvent(
                         eventId = event.eventId,
                         projectId = project.id,
-                        actionType = ProjectActionType.CREATE
+                        actionType = ProjectActionType.CREATE,
+                        userId = event.userId
                     ))
 
                     project
@@ -95,7 +96,8 @@ class ProjectService(
                             description = event.description?:prevProject.description,
                             avatarUrl = event.avatarUrl?:prevProject.avatarUrl,
                             isActive = event.isActive?:prevProject.isActive,
-                            createdAt = prevProject.createdAt
+                            createdAt = prevProject.createdAt,
+                            members = projectUserRepository.findAllByProject_Id(event.projectId)
                         )
                     )
 

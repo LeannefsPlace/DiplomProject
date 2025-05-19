@@ -1,6 +1,6 @@
 package com.ivan.auth_service.model
 
-class UserModel(
+open class UserModel(
     val login: String = "",
 
     var email: String = "",

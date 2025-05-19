@@ -181,3 +181,4 @@ volumes:
   pg_data:
   mongo_data:
   backups:
+  file_storage:

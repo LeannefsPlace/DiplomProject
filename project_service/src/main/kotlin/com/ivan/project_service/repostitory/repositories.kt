@@ -9,7 +9,7 @@ import java.util.*
 
 @Repository
 interface ProjectRepository : JpaRepository<Project, Int> {
-    @Query("SELECT p FROM Project p JOIN p.members m WHERE m.userId = :userId AND p.isActive = true")
+    @Query("SELECT p FROM Project p JOIN p.members m WHERE m.userId = :userId")
     fun findAllByUserId(userId: Int): List<Project>
 }
 
@@ -17,4 +17,5 @@ interface ProjectRepository : JpaRepository<Project, Int> {
 interface ProjectUserRepository : JpaRepository<ProjectUser, Int> {
     fun findByProjectIdAndUserId(projectId: Int, userId: Int): Optional<ProjectUser>
     fun existsByProjectIdAndUserId(projectId: Int, userId: Int): Boolean
+    fun findAllByProject_Id(projectId: Int): MutableList<ProjectUser>
 }

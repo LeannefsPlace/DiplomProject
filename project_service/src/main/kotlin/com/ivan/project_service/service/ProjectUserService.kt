@@ -55,6 +55,15 @@ class ProjectUserService(
                         )
                     )
 
+                    kafkaProducerService.sendProjectAction(
+                        ProjectActionEvent(
+                            eventId = event.eventId,
+                            projectId = project.id,
+                            actionType = ProjectActionType.EDIT_ROLE,
+                            userId = event.userId
+                        )
+                    )
+
                 } catch (e: Exception) {
                     kafkaProducerService.sendProjectResult(
                         ProjectResultEvent(

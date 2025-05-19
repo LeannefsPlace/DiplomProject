@@ -33,13 +33,16 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-annotations")
     implementation("com.fasterxml.jackson.core:jackson-core")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
 
     // Или, если используете Spring Boot:
     implementation("io.projectreactor:reactor-core:3.6.6")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.0")
+    testImplementation("org.springframework.security:spring-security-test")
 }
 
 tasks.withType<KotlinCompile> {

@@ -1,51 +1,53 @@
 package com.ivan.gateway_service.model
 
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.ivan.gateway_service.kafka.TaskStatistics
 import java.time.LocalDate
 import java.util.*
 
 data class Branch(
-    val branchId: String = UUID.randomUUID().toString(),
+    @JsonProperty val branchId: String = UUID.randomUUID().toString(),
 
-    val name: String,
+    @JsonProperty val name: String,
 
-    val active: Boolean = true,
+    @JsonProperty val active: Boolean = true,
 
-    var tasks: List<Task> = emptyList(),
+    @JsonProperty var tasks: List<Task> = emptyList(),
 
-    var statistics: TaskStatistics
+    @JsonProperty var statistics: TaskStatistics
 )
 
 data class Task(
-    val taskId: String = UUID.randomUUID().toString(),
+    @JsonProperty val taskId: String = UUID.randomUUID().toString(),
 
-    val parentId: String?,
+    @JsonProperty val parentId: String?,
 
-    val title: String,
+    @JsonProperty val title: String,
 
-    val description: String,
+    @JsonProperty val description: String,
 
-    val startDate: LocalDate,
+    @JsonProperty val startDate: LocalDate,
 
-    val endDate: LocalDate,
+    @JsonProperty val endDate: LocalDate,
 
-    val done: Boolean = false,
+    @JsonProperty val done: Boolean = false,
 
-    val hasProblem: Boolean = false,
+    @JsonProperty val hasProblem: Boolean = false,
 
-    val problemMessage: String? = null,
+    @JsonProperty val problemMessage: String? = null,
 
-    val skillId: Int?,
+    @JsonProperty val skillId: Int?,
 
-    val assignedTo: Int?,
+    @JsonProperty val assignedTo: Int?,
 
-    val file: String?,
+    @JsonProperty val file: String?,
 )
 
 data class Project(
-    val projectId: Int,
+    @JsonProperty val projectId: Int,
 
-    var branches: List<Branch> = emptyList(),
+    @JsonProperty var branches: List<Branch> = emptyList(),
 
-    var statistics: TaskStatistics
+    @JsonProperty var statistics: TaskStatistics
 )

@@ -4,6 +4,7 @@ import com.ivan.auth_service.kafka.UserCommandEvent
 import com.ivan.auth_service.kafka.UserCommandType
 import com.ivan.auth_service.model.Session
 import com.ivan.auth_service.model.UserModel
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Duration
@@ -69,5 +70,31 @@ class AuthService(
             throw CredentialException("Password for user " + user.login + " does not match hash")
 
         return sessionService.expireAll(userResponse.users[0].id)
+    }
+
+    suspend fun changePassword(userModel: UserModel, password: String): Boolean {
+        val userResponse = kafkaRequestReplyService.getUserEvent(
+            UserCommandEvent(
+                eventId = UUID.randomUUID().toString(),
+                commandType = UserCommandType.GET,
+                login = userModel.login
+        ), Duration.ofSeconds(3))
+        if (!userResponse.success) throw Exception("Error changing password: " + userResponse.errorMessage)
+        if(passwordEncoder.matches(password, userResponse.passwordHash)){
+            val userUpdateResponse = kafkaRequestReplyService.getUserEvent(
+                UserCommandEvent(
+                    eventId = UUID.randomUUID().toString(),
+                    commandType = UserCommandType.EDIT,
+                    userId = userResponse.users?.get(0)?.id?:throw CredentialException("User ID does not match hash"),
+                    email = null,
+                    passwordHash = passwordEncoder.encode(password),
+                    avatarUrl = null,
+                    fullName = null,
+                    globalRole = null,
+                    skillIds = emptyList()
+                ), Duration.ofSeconds(3))
+            return userUpdateResponse.success
+        }
+        else return false
     }
 }

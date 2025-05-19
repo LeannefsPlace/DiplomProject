@@ -25,7 +25,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.kafka:spring-kafka")
@@ -36,7 +35,7 @@ dependencies {
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.springframework.security:spring-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("io.projectreactor:reactor-core:3.6.6")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.0")
 

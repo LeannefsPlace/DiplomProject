@@ -149,6 +149,7 @@ class KafkaMessageService(
                         email = command.email,
                         fullName = command.fullName,
                         avatarUrl = command.avatarUrl,
+                        passwordHash = command.passwordHash,
                         globalRole = command.globalRole,
                         skillIds = command.skillIds
                     )
@@ -161,7 +162,7 @@ class KafkaMessageService(
                         )
                     )
 
-                    if (command.globalRole != prevUser.globalRole || command.passwordHash != prevUser.globalRole) {
+                    if (command.globalRole != prevUser.globalRole || !command.passwordHash.isNullOrEmpty()) {
                         val actionType = when {
                             command.globalRole != prevUser.globalRole -> "ROLE_UPDATED"
                             command.passwordHash != prevUser.passwordHash -> "PASSWORD_UPDATED"
@@ -414,7 +415,8 @@ class KafkaMessageService(
         fullName = fullName,
         globalRole = globalRole,
         skillIds = userSkills.map { it.skill.id },
-        createdAt = createdAt.toString()
+        createdAt = createdAt.toString(),
+        avatarUrl = avatarUrl
     )
 
     private fun Skill.toDto() = SkillDto(

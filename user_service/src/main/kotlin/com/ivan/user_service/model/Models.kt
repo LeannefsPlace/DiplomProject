@@ -18,7 +18,7 @@ class User(
     var email: String,
 
     @Column(name = "password_hash", nullable = false, length = 255)
-    val passwordHash: String,
+    var passwordHash: String,
 
     @Column(name = "full_name", length = 100)
     var fullName: String? = null,
@@ -33,7 +33,7 @@ class User(
     val createdAt: Instant = Instant.now()
 ) {
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val userSkills: MutableSet<UserSkill> = mutableSetOf()
+    var userSkills: MutableSet<UserSkill> = mutableSetOf()
 
     fun getSkillIds(): Set<Int> = userSkills.map { it.skill.id }.toSet()
 

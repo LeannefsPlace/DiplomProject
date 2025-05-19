@@ -25,7 +25,7 @@ class ProjectTasksQueryService(
         timeout: Duration = Duration.ofSeconds(5),
     ): ProjectTaskResultEvent {
         val future = CompletableFuture<Any>()
-
+        println("ProjectTaskEvent: ${request.eventId} ${request.commandType}")
         pendingRequests[request.eventId] = future
 
         kafkaTemplate.send(

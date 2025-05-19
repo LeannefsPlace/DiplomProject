@@ -1,45 +1,44 @@
 package com.ivan.gateway_service
 
-import com.ivan.gateway_service.service.AuthService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpStatus
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.HttpStatusEntryPoint
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
-class SecurityConfig(
-    private val jwtConfig: JwtConfig,
-    private val sessionService: AuthService
-) {
+class SecurityConfig {
+
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        return http
+        http
+            .authorizeHttpRequests { auth ->
+                auth.anyRequest().permitAll()
+            }
             .csrf { it.disable() }
-            .cors{ it.disable() }
-            .sessionManagement {
-                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
-            .authorizeHttpRequests {
-                it.requestMatchers(
-                    "/auth",
-                ).permitAll()
-                    .anyRequest().authenticated()
-            }
-            .addFilterBefore(
-                JwtSessionAuthFilter(jwtConfig, sessionService),
-                UsernamePasswordAuthenticationFilter::class.java
-            )
-            .exceptionHandling {
-                it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-            }
-            .build()
+            .cors { }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .logout { it.disable() }
+
+        return http.build()
+    }
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration()
+        configuration.allowedOrigins = listOf("*") // Для разработки
+        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        configuration.allowedHeaders = listOf("*")
+        configuration.allowCredentials = false
+
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", configuration)
+        return source
     }
 }
+

@@ -67,7 +67,8 @@ data class UserDto(
     val fullName: String?,
     val globalRole: String,
     val skillIds: List<Int>,
-    val createdAt: String
+    val createdAt: String,
+    val avatarUrl: String?,
 )
 
 data class SkillDto(

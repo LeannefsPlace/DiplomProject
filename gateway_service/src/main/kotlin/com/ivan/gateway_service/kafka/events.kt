@@ -1,5 +1,6 @@
 package com.ivan.gateway_service.kafka
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.ivan.gateway_service.model.Project
 import com.ivan.gateway_service.model.Task
@@ -12,11 +13,11 @@ import java.util.UUID
 data class ProjectTaskCommandEvent(
     override val eventId: String,
     val commandType: ProjectTaskEventType,
-    val task: TaskDTO?,
-    val branch: BranchDTO,
-    val userId: Int?,
-    val projectId: Int?,
-    val branchId: String?
+    val task: TaskDTO? = null,
+    val branch: BranchDTO? = null,
+    val userId: Int? = null,
+    val projectId: Int? = null,
+    val branchId: String? = null,
 ) : ProjectTaskEvent()
 
 data class ProjectCommandEvent(
@@ -41,7 +42,7 @@ data class UserCommandEvent(
     val avatarUrl: String? = null,
     val fullName: String? = null,
     val globalRole: String? = null,
-    val skillIds: List<Int>? = null
+    val skillIds: List<Int> = emptyList()
 ) : UserEvent()
 
 data class SkillCommandEvent(
@@ -162,9 +163,9 @@ data class TaskDTO(
 
     val description: String? = null,
 
-    val startDate: LocalDate? = null,
+    @JsonFormat(pattern = "dd.MM.yyyy", shape = JsonFormat.Shape.STRING) val startDate: LocalDate? = null,
 
-    val endDate: LocalDate? = null,
+    @JsonFormat(pattern = "dd.MM.yyyy", shape = JsonFormat.Shape.STRING) val endDate: LocalDate? = null,
 
     val done: Boolean = false,
 
@@ -188,10 +189,10 @@ data class BranchDTO(
 )
 
 data class TaskStatistics(
-    var taskCount: Int,
-    var completedTasksCount: Int,
-    var delayedTasksCount: Int,
-    var problemTasksCount: Int
+    @JsonProperty var taskCount: Int,
+    @JsonProperty var completedTasksCount: Int,
+    @JsonProperty var delayedTasksCount: Int,
+    @JsonProperty var problemTasksCount: Int
 )
 
 enum class ProjectTaskEventType{
@@ -240,13 +241,14 @@ enum class ProjectRole {
 }
 
 data class UserDto(
-    val id: Int,
-    val login: String,
-    val email: String,
-    val fullName: String?,
-    val globalRole: String,
-    val skillIds: List<Int>,
-    val createdAt: String
+    @JsonProperty val id: Int,
+    @JsonProperty val login: String,
+    @JsonProperty val email: String,
+    @JsonProperty val fullName: String?,
+    @JsonProperty val globalRole: String,
+    @JsonProperty val skillIds: List<Int>,
+    @JsonProperty val createdAt: String,
+    @JsonProperty val avatarUrl: String?,
 )
 
 data class SkillDto(

@@ -1,5 +1,6 @@
 package com.ivan.project_task_service.kafka
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.ivan.project_task_service.model.Branch
 import com.ivan.project_task_service.model.Project
@@ -17,14 +18,14 @@ sealed class ProjectTaskEvent {
     abstract val eventId: String
 }
 
-sealed class ProjectTaskCommandEvent(
+data class ProjectTaskCommandEvent(
     @JsonProperty override val eventId: String,
     @JsonProperty val commandType: ProjectTaskEventType,
-    @JsonProperty val task: TaskDTO?,
-    @JsonProperty val branch: BranchDTO,
-    @JsonProperty val userId: Int?,
-    @JsonProperty val projectId: Int?,
-    @JsonProperty val branchId: String?
+    @JsonProperty val task: TaskDTO? = null,
+    @JsonProperty val branch: BranchDTO? = null,
+    @JsonProperty val userId: Int? = null,
+    @JsonProperty val projectId: Int? = null,
+    @JsonProperty val branchId: String? = null
 ) : ProjectTaskEvent()
 
 data class ProjectTaskResultEvent(
@@ -36,8 +37,8 @@ data class ProjectTaskResultEvent(
 ) : ProjectTaskEvent()
 
 data class ProjectTaskActionEvent(
-    override val eventId: String,
-    val projectId: Int
+    @JsonProperty override val eventId: String,
+    @JsonProperty val projectId: Int
 ) : ProjectTaskEvent()
 
 data class TaskDTO(
@@ -49,9 +50,9 @@ data class TaskDTO(
 
     @JsonProperty val description: String? = null,
 
-    @JsonProperty val startDate: LocalDate? = null,
+    @JsonProperty @JsonFormat(pattern = "dd.MM.yyyy", shape = JsonFormat.Shape.STRING) val startDate: LocalDate? = null,
 
-    @JsonProperty val endDate: LocalDate? = null,
+    @JsonProperty @JsonFormat(pattern = "dd.MM.yyyy", shape = JsonFormat.Shape.STRING) val endDate: LocalDate? = null,
 
     @JsonProperty val done: Boolean = false,
 
@@ -114,16 +115,16 @@ enum class ProjectTaskEventType{
 }
 
 data class ProjectActionEvent(
-    @JsonProperty("event_id")
+    @JsonProperty
     override val eventId: String,
 
-    @JsonProperty("project_id")
+    @JsonProperty
     val projectId: Int,
 
-    @JsonProperty("action_type")
+    @JsonProperty
     val actionType: ProjectActionType,
 
-    @JsonProperty("user_id")
+    @JsonProperty
     val userId: Int? = null,
 ) : ProjectEvent()
 
@@ -132,15 +133,15 @@ enum class ProjectActionType {
 }
 
 data class UserActionEvent(
-    val eventId: String,
-    val actionType: String,
-    val userId: Int?,
-    val login: String?
+    @JsonProperty val eventId: String,
+    @JsonProperty val actionType: String,
+    @JsonProperty val userId: Int?,
+    @JsonProperty val login: String?
 )
 
 data class SkillActionEvent(
-    val eventId: String,
-    val actionType: String,
-    val skillId: Int
+    @JsonProperty val eventId: String,
+    @JsonProperty val actionType: String,
+    @JsonProperty val skillId: Int
 )
 

@@ -56,6 +56,7 @@ class UserService(
         email: String? = null,
         fullName: String? = null,
         avatarUrl: String? = null,
+        passwordHash: String? = null,
         globalRole: String? = null,
         skillIds: List<Int>? = null
     ): User {
@@ -65,16 +66,10 @@ class UserService(
         email?.let { user.email = it }
         fullName?.let { user.fullName = it }
         avatarUrl?.let { user.avatarUrl = it }
+        passwordHash?.let { user.passwordHash = it }
         globalRole?.let { user.globalRole = it }
 
-        skillIds?.let { ids ->
-            user.userSkills.clear()
-            ids.forEach { skillId ->
-                val skill = skillRepository.findById(skillId)
-                    .orElseThrow { IllegalArgumentException("Skill with id $skillId not found") }
-                user.userSkills.add(UserSkill(user = user, skill = skill))
-            }
-        }
+        skillIds?.let {user.updateSkills(skillIds.toSet(), skillRepository)}
 
         return userRepository.save(user)
     }
